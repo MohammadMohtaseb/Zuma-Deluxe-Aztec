@@ -1,0 +1,472 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Tajawal:wght@400;500;700;900&display=swap');
+
+:root {
+  --gold-primary: #d4af37;
+  --gold-glow: #ffd700;
+  --gold-dark: #8a6d1c;
+  --stone-dark: #120b06;
+  --stone-panel: rgba(26, 17, 10, 0.94);
+  --stone-border: #4d3319;
+  --accent-red: #ef233c;
+  --accent-cyan: #00b4d8;
+  --text-main: #f5eedb;
+  --text-muted: #b8a688;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: 'Tajawal', 'Cinzel', sans-serif;
+  background-color: #070402;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(30, 20, 10, 0.6) 0%, rgba(5, 3, 2, 0.98) 100%),
+    repeating-linear-gradient(45deg, rgba(20, 13, 7, 0.2) 0px, rgba(20, 13, 7, 0.2) 2px, transparent 2px, transparent 10px);
+  color: var(--text-main);
+  direction: rtl;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#appContainer {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  max-width: 100vw;
+  max-height: 100vh;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.25);
+  border: 4px solid var(--stone-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--stone-dark);
+}
+
+/* Canvas Display */
+#gameCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* -------------------------------------------------------------
+   TOP HUD BAR (عناصر الواجهة الرسومية الثابتة)
+   ------------------------------------------------------------- */
+#hudTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(16, 10, 6, 0.96) 0%, rgba(26, 17, 10, 0.85) 80%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 10;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.25);
+  pointer-events: none;
+}
+
+#hudTopBar > * {
+  pointer-events: auto;
+}
+
+.hud-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hud-pill {
+  background: rgba(18, 12, 7, 0.8);
+  border: 1px solid var(--stone-border);
+  padding: 4px 14px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.hud-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.hud-value {
+  font-family: 'Cinzel', 'Tajawal', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold-glow);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/* Zuma Progression Meter */
+.zuma-meter-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 320px;
+}
+
+.zuma-meter-bar {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  background: #150e08;
+  border: 2px solid var(--gold-primary);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px #000, 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+#zumaBarFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff7b00, #ffd700, #fff275);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
+}
+
+#zumaBarLabel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cinzel', 'Tajawal', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1a0f00;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+  letter-spacing: 1px;
+}
+
+/* HUD Buttons */
+.hud-btn {
+  background: linear-gradient(180deg, #382414 0%, #20140a 100%);
+  border: 1px solid var(--gold-primary);
+  color: var(--gold-glow);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+.hud-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px var(--gold-glow);
+  background: linear-gradient(180deg, #53361e 0%, #2e1c0e 100%);
+}
+
+.hud-btn:active {
+  transform: scale(0.95);
+}
+
+/* -------------------------------------------------------------
+   MODALS & OVERLAYS
+   ------------------------------------------------------------- */
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 5, 3, 0.82);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.aztec-panel {
+  background: var(--stone-panel);
+  border: 3px solid var(--gold-primary);
+  border-radius: 16px;
+  padding: 32px 40px;
+  width: 620px;
+  max-width: 90%;
+  max-height: 85%;
+  overflow-y: auto;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.3);
+  position: relative;
+  text-align: center;
+}
+
+/* Ancient Aztec Tablet Corners */
+.aztec-panel::before, .aztec-panel::after {
+  content: '❖';
+  position: absolute;
+  color: var(--gold-glow);
+  font-size: 20px;
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+.aztec-panel::before { top: 10px; right: 14px; }
+.aztec-panel::after { bottom: 10px; left: 14px; }
+
+.panel-title {
+  font-family: 'Cinzel', 'Tajawal', sans-serif;
+  font-size: 32px;
+  color: var(--gold-glow);
+  margin-bottom: 8px;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.panel-subtitle {
+  color: var(--text-muted);
+  font-size: 15px;
+  margin-bottom: 24px;
+}
+
+/* Buttons */
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.aztec-btn {
+  background: linear-gradient(180deg, #d4af37 0%, #aa820a 50%, #7d5e05 100%);
+  border: 1px solid #ffe680;
+  color: #120b06;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.aztec-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 215, 0, 0.5);
+  background: linear-gradient(180deg, #ffe066 0%, #cca310 50%, #997300 100%);
+}
+
+.aztec-btn:active {
+  transform: translateY(1px);
+}
+
+.aztec-btn.secondary {
+  background: linear-gradient(180deg, #3d2716 0%, #24160c 100%);
+  border: 1px solid var(--stone-border);
+  color: var(--text-main);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.aztec-btn.secondary:hover {
+  border-color: var(--gold-primary);
+  color: var(--gold-glow);
+  background: linear-gradient(180deg, #53361e 0%, #301d0f 100%);
+}
+
+/* Database Badge */
+.db-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 180, 216, 0.15);
+  border: 1px solid rgba(0, 180, 216, 0.4);
+  color: #90e0ef;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+/* Powerup Cards Grid */
+.powerups-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 20px 0;
+  text-align: right;
+}
+
+.powerup-card {
+  background: rgba(14, 9, 5, 0.8);
+  border: 1px solid var(--stone-border);
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.powerup-card-icon {
+  font-size: 28px;
+  background: rgba(0,0,0,0.4);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.powerup-card-title {
+  font-weight: 700;
+  color: var(--gold-glow);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.powerup-card-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* HighScores Table */
+.scores-container {
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 16px 0;
+  border: 1px solid var(--stone-border);
+  border-radius: 8px;
+  background: rgba(10, 6, 3, 0.7);
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(77, 51, 25, 0.3);
+  font-size: 14px;
+}
+
+.score-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rank-badge {
+  background: var(--gold-dark);
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.player-name {
+  font-weight: 700;
+  color: var(--text-main);
+  flex: 1;
+  text-align: right;
+  margin-right: 12px;
+}
+
+.score-val {
+  font-family: 'Cinzel', sans-serif;
+  color: var(--gold-glow);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.stage-val, .combo-val {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: 10px;
+}
+
+/* Input Styles */
+.aztec-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(14, 9, 5, 0.9);
+  border: 2px solid var(--stone-border);
+  border-radius: 8px;
+  color: var(--gold-glow);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  margin-top: 10px;
+}
+
+.aztec-input:focus {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+/* Settings sliders */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(77, 51, 25, 0.4);
+}
+
+.setting-label {
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+input[type="range"] {
+  accent-color: var(--gold-primary);
+  width: 160px;
+}
+
+/* Quick Swap Control Hint at bottom */
+.controls-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 9, 5, 0.7);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 4px 16px;
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 16px;
+  pointer-events: none;
+  z-index: 5;
+}

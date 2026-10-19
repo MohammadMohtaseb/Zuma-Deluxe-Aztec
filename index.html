@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>زوما ديلوكس: أسطورة الآزتيك | Zuma Deluxe Aztec</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="appContainer">
+    <!-- Main 2D Canvas -->
+    <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+    <!-- Top HUD Bar -->
+    <header id="hudTopBar">
+      <!-- Left: Lives & Level -->
+      <div class="hud-section">
+        <div class="hud-pill">
+          <span class="hud-label">المرحلة:</span>
+          <span id="hudStage" class="hud-value">1</span>
+        </div>
+        <div class="hud-pill">
+          <span class="hud-label">الضفادع:</span>
+          <span id="hudLives" class="hud-value">🐸 🐸 🐸</span>
+        </div>
+      </div>
+
+      <!-- Center: Zuma Progression Bar -->
+      <div class="zuma-meter-container">
+        <div class="zuma-meter-bar">
+          <div id="zumaBarFill"></div>
+          <div id="zumaBarLabel">0%</div>
+        </div>
+      </div>
+
+      <!-- Right: Score & Controls -->
+      <div class="hud-section">
+        <div class="hud-pill">
+          <span class="hud-label">النقاط:</span>
+          <span id="hudScore" class="hud-value">0</span>
+        </div>
+        <button id="btnAudioToggle" class="hud-btn" title="كتم/تشغيل الصوت">🔊</button>
+        <button id="btnPause" class="hud-btn" title="إيقاف مؤقت (P)">⏸</button>
+        <button id="btnFullscreen" class="hud-btn" title="شاشة كاملة">⛶</button>
+      </div>
+    </header>
+
+    <!-- Controls hint at bottom -->
+    <div class="controls-hint">
+      <span>🖱️ الزر الأيسر: إطلاق</span>
+      <span>🔄 الزر الأيمن أو المسافة [Space]: تبديل الكرة الاحتياطية</span>
+      <span>⏸ زر P: إيقاف مؤقت</span>
+    </div>
+
+    <!-- 1. Start Screen Modal -->
+    <div id="startModal" class="modal-overlay">
+      <div class="aztec-panel">
+        <div class="db-badge" id="dbStatusBadge">
+          <span>⚡ متصل بقاعدة بيانات Realm DB</span>
+        </div>
+        <h1 class="panel-title">زوما: أسطورة الآزتيك</h1>
+        <p class="panel-subtitle">استنساخ هندسي كامل وفق وثيقة التصميم الفنية V2.0</p>
+
+        <div class="btn-group">
+          <button id="btnStartGame" class="aztec-btn">
+            <span>▶</span> بدء المغامرة
+          </button>
+          <div class="btn-row">
+            <button id="btnHowToPlay" class="aztec-btn secondary">
+              <span>📜</span> طريقة اللعب والقوى
+            </button>
+            <button id="btnHighScores" class="aztec-btn secondary">
+              <span>🏆</span> لوحة الشرف (Realm)
+            </button>
+            <button id="btnSettings" class="aztec-btn secondary">
+              <span>⚙️</span> الإعدادات
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. How to Play & Power-ups Modal -->
+    <div id="howToPlayModal" class="modal-overlay hidden">
+      <div class="aztec-panel" style="width: 720px;">
+        <h2 class="panel-title">طريقة اللعب والقوى الخارقة</h2>
+        <p class="panel-subtitle">أطلق الكرات وطابق 3 أو أكثر من نفس اللون لتفجيرها قبل وصولها لجمجمة الهلاك!</p>
+
+        <!-- Powerups Blueprint from specification -->
+        <div class="powerups-grid">
+          <div class="powerup-card">
+            <div class="powerup-card-icon" style="color: #ff3300;">💣</div>
+            <div>
+              <div class="powerup-card-title">كرة التفجير (Bomb Marble)</div>
+              <div class="powerup-card-desc">تنفجر في محيط دائري مبيدة كل الكرات المجاورة لفتح فجوات تكتيكية.</div>
+            </div>
+          </div>
+
+          <div class="powerup-card">
+            <div class="powerup-card-icon" style="color: #00f0ff;">❄️</div>
+            <div>
+              <div class="powerup-card-title">كرة الإبطاء (Slow-Down)</div>
+              <div class="powerup-card-desc">تخفض سرعة حركة سلسلة الكرات بنسبة 60% لمدة 5 ثوانٍ لإعادة تنظيم الرميات.</div>
+            </div>
+          </div>
+
+          <div class="powerup-card">
+            <div class="powerup-card-icon" style="color: #cc00ff;">⏪</div>
+            <div>
+              <div class="powerup-card-title">كرة العودة للخلف (Reverse Ball)</div>
+              <div class="powerup-card-desc">تجبر شريط الكرات بالكامل على التراجع بعيداً عن الجمجمة، مسببة تراجع الخطر الفوري.</div>
+            </div>
+          </div>
+
+          <div class="powerup-card">
+            <div class="powerup-card-icon" style="color: #ffea00;">🎯</div>
+            <div>
+              <div class="powerup-card-title">شعاع الدقة (Accuracy Beam)</div>
+              <div class="powerup-card-desc">تظهر خط ليزر إرشادي فائق الدقة وتضاعف سرعة انطلاق المقذوفات لتخترق الفتحات الضيقة.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; font-size: 13px; color: #eed; margin-bottom: 16px; text-align: right; line-height: 1.6;">
+          <strong style="color: #ffd700;">🧲 التجاذب المغناطيسي (Magnetic Pull):</strong>
+          عند تفجير مجموعة كرات وخلق فجوة وكان طرفا الفجوة من نفس اللون، تتراجع الكرات للخلف تلقائياً لتتصل ببعضها، وإذا شكلت 3 كرات متطابقة يتفعل كومبو (Combo x2, x3...) مصحوباً بارتفاع النغمات الصوتية وهزة الشاشة!
+        </div>
+
+        <button id="btnCloseHowToPlay" class="aztec-btn">فهمت، العودة</button>
+      </div>
+    </div>
+
+    <!-- 3. High Scores Modal (Realm DB) -->
+    <div id="highScoresModal" class="modal-overlay hidden">
+      <div class="aztec-panel">
+        <h2 class="panel-title">لوحة الشرف (Realm DB)</h2>
+        <p class="panel-subtitle">أعلى النتائج المسجلة في قاعدة البيانات المحلية</p>
+
+        <div class="scores-container" id="highScoresList">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="btn-row" style="margin-top: 16px;">
+          <button id="btnClearScores" class="aztec-btn secondary">مسح السجلات</button>
+          <button id="btnCloseHighScores" class="aztec-btn">إغلاق</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Settings Modal -->
+    <div id="settingsModal" class="modal-overlay hidden">
+      <div class="aztec-panel" style="width: 500px;">
+        <h2 class="panel-title">الإعدادات</h2>
+        <p class="panel-subtitle">تخصيص تجربة الصوت والرسوميات</p>
+
+        <div class="setting-row">
+          <span class="setting-label">مؤثرات الصوت (SFX):</span>
+          <input type="range" id="soundVolRange" min="0" max="1" step="0.05" value="0.8">
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">طبول الحرب التفاعلية (Music):</span>
+          <input type="range" id="musicVolRange" min="0" max="1" step="0.05" value="0.5">
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">شعاع التصويب الإرشادي:</span>
+          <input type="checkbox" id="laserGuideCheck" checked style="width: 20px; height: 20px; accent-color: var(--gold-primary);">
+        </div>
+
+        <button id="btnCloseSettings" class="aztec-btn" style="margin-top: 24px;">حفظ وإغلاق</button>
+      </div>
+    </div>
+
+    <!-- 5. Pause Modal -->
+    <div id="pauseModal" class="modal-overlay hidden">
+      <div class="aztec-panel" style="width: 440px;">
+        <h2 class="panel-title">اللعبة متوقفة</h2>
+        <p class="panel-subtitle">الضفدع الحجري ينتظر أوامرك</p>
+
+        <div class="btn-group">
+          <button id="btnResume" class="aztec-btn">▶ متابعة اللعب</button>
+          <button id="btnRestartLevel" class="aztec-btn secondary">🔄 إعادة المرحلة</button>
+          <button id="btnQuitToMenu" class="aztec-btn secondary">🏠 القائمة الرئيسية</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Level Victory Modal -->
+    <div id="victoryModal" class="modal-overlay hidden">
+      <div class="aztec-panel">
+        <h2 class="panel-title" style="color: #ffd700;">🌟 نصر أسطوري! 🌟</h2>
+        <p class="panel-subtitle">تم تطهير المسار بنجاح قبل وصول الكرات للجمجمة</p>
+
+        <div style="margin: 20px 0; font-size: 16px; line-height: 2;">
+          <div>المرحلة المكتملة: <strong id="vicStage" style="color: #ffd700;">1</strong></div>
+          <div>النقاط الإجمالية: <strong id="vicScore" style="color: #00f0ff;">0</strong></div>
+          <div>أعلى كومبو متتالي: <strong id="vicMaxCombo" style="color: #ff3300;">x1</strong></div>
+        </div>
+
+        <div class="btn-group">
+          <button id="btnNextLevel" class="aztec-btn">
+            <span>⚔️</span> المرحلة التالية
+          </button>
+          <button id="btnVictoryToMenu" class="aztec-btn secondary">القائمة الرئيسية</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Game Over Modal -->
+    <div id="gameOverModal" class="modal-overlay hidden">
+      <div class="aztec-panel">
+        <h2 class="panel-title" style="color: #ef233c;">💀 ابتلعتك جمجمة الهلاك! 💀</h2>
+        <p class="panel-subtitle">لقد نفدت ضفادعك الحجرية وسقط المعبد</p>
+
+        <div style="margin: 16px 0; font-size: 15px;">
+          <div>النقاط المحققة: <strong id="finalScore" style="color: #ffd700; font-size: 22px;">0</strong></div>
+          <div>المرحلة: <strong id="finalStage">1</strong> | أعلى كومبو: <strong id="finalMaxCombo">x1</strong></div>
+        </div>
+
+        <div style="margin: 16px 0;">
+          <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+            سجل اسمك في قاعدة بيانات Realm:
+          </label>
+          <input type="text" id="playerNameInput" class="aztec-input" placeholder="اسم المحارب" value="محارب الآزتيك" maxlength="20">
+        </div>
+
+        <div class="btn-group">
+          <button id="btnSubmitScore" class="aztec-btn">
+            <span>💾</span> حفظ النتيجة وإعادة المحاولة
+          </button>
+          <button id="btnGameOverToMenu" class="aztec-btn secondary">القائمة الرئيسية</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="database.js"></script>
+  <script src="audio.js"></script>
+  <script src="paths.js"></script>
+  <script src="particles.js"></script>
+  <script src="game.js"></script>
+
+  <script>
+    // UI Event Wiring & Application Bootstrap
+    window.addEventListener('DOMContentLoaded', () => {
+      const game = new ZumaGame('gameCanvas');
+      window.gameInstance = game;
+
+      // Update Realm DB Badge status
+      const dbBadge = document.getElementById('dbStatusBadge');
+      if (dbBadge && window.dbManager) {
+        dbBadge.innerHTML = `<span>⚡ قاعدة البيانات: ${window.dbManager.mode}</span>`;
+      }
+
+      // Start Game Button
+      document.getElementById('btnStartGame').addEventListener('click', () => {
+        document.getElementById('startModal').classList.add('hidden');
+        game.audio.init();
+        game.audio.startWarDrums();
+        game.state = 'PLAYING';
+      });
+
+      // How to Play
+      document.getElementById('btnHowToPlay').addEventListener('click', () => {
+        document.getElementById('howToPlayModal').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseHowToPlay').addEventListener('click', () => {
+        document.getElementById('howToPlayModal').classList.add('hidden');
+      });
+
+      // High Scores
+      document.getElementById('btnHighScores').addEventListener('click', async () => {
+        game.highScores = await game.db.getHighScores(10);
+        game.renderHighScoresTable();
+        document.getElementById('highScoresModal').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseHighScores').addEventListener('click', () => {
+        document.getElementById('highScoresModal').classList.add('hidden');
+      });
+      document.getElementById('btnClearScores').addEventListener('click', async () => {
+        if (confirm('هل أنت متأكد من مسح جميع السجلات من قاعدة البيانات؟')) {
+          await game.db.clearAll();
+          game.highScores = [];
+          game.renderHighScoresTable();
+        }
+      });
+
+      // Settings
+      document.getElementById('btnSettings').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseSettings').addEventListener('click', async () => {
+        const soundVol = parseFloat(document.getElementById('soundVolRange').value);
+        const musicVol = parseFloat(document.getElementById('musicVolRange').value);
+        const laserGuide = document.getElementById('laserGuideCheck').checked;
+
+        game.audio.setVolumes(soundVol, musicVol);
+        game.settings.soundVolume = soundVol;
+        game.settings.musicVolume = musicVol;
+        game.settings.laserAimGuide = laserGuide;
+
+        await game.db.saveSettings(game.settings);
+        document.getElementById('settingsModal').classList.add('hidden');
+      });
+
+      // Audio Toggle
+      document.getElementById('btnAudioToggle').addEventListener('click', () => {
+        const isMuted = game.audio.toggleMute();
+        document.getElementById('btnAudioToggle').textContent = isMuted ? '🔇' : '🔊';
+      });
+
+      // Pause button
+      document.getElementById('btnPause').addEventListener('click', () => {
+        game.togglePause();
+      });
+      document.getElementById('btnResume').addEventListener('click', () => {
+        game.togglePause();
+      });
+      document.getElementById('btnRestartLevel').addEventListener('click', () => {
+        document.getElementById('pauseModal').classList.add('hidden');
+        game.initLevel(game.stageIndex);
+        game.state = 'PLAYING';
+        game.audio.startWarDrums();
+      });
+      document.getElementById('btnQuitToMenu').addEventListener('click', () => {
+        document.getElementById('pauseModal').classList.add('hidden');
+        document.getElementById('startModal').classList.remove('hidden');
+        game.state = 'START_SCREEN';
+      });
+
+      // Victory dialog
+      document.getElementById('btnNextLevel').addEventListener('click', () => {
+        document.getElementById('victoryModal').classList.add('hidden');
+        game.initLevel(game.stageIndex + 1);
+        game.state = 'PLAYING';
+        game.audio.startWarDrums();
+      });
+      document.getElementById('btnVictoryToMenu').addEventListener('click', () => {
+        document.getElementById('victoryModal').classList.add('hidden');
+        document.getElementById('startModal').classList.remove('hidden');
+        game.state = 'START_SCREEN';
+      });
+
+      // Game Over dialog
+      document.getElementById('btnSubmitScore').addEventListener('click', async () => {
+        const name = document.getElementById('playerNameInput').value.trim();
+        await game.submitHighScore(name);
+        document.getElementById('gameOverModal').classList.add('hidden');
+        game.lives = 3;
+        game.score = 0;
+        game.initLevel(0);
+        game.state = 'PLAYING';
+        game.audio.startWarDrums();
+      });
+      document.getElementById('btnGameOverToMenu').addEventListener('click', () => {
+        document.getElementById('gameOverModal').classList.add('hidden');
+        document.getElementById('startModal').classList.remove('hidden');
+        game.lives = 3;
+        game.score = 0;
+        game.initLevel(0);
+        game.state = 'START_SCREEN';
+      });
+
+      // Fullscreen Toggle
+      document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.getElementById('appContainer').requestFullscreen().catch(err => {});
+        } else {
+          document.exitFullscreen().catch(err => {});
+        }
+      });
+    });
+  </script>
+</body>
+</html>

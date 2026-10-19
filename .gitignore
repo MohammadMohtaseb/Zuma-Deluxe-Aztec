@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Realm Database files
+*.realm
+*.realm.lock
+*.realm.note
+
+# Build and logs
+dist/
+build/
+*.log
+
+# OS and Temp
+.DS_Store
+Thumbs.db
+*.lnk
